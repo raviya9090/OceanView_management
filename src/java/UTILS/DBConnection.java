@@ -1,13 +1,13 @@
-//package com.oceanview.util;
- //this is error one to test commit
+package UTILS;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DBConnection {
-    private static final String URL = "jdbc:mysql://localhost:3306/ocean_view_resort";
+    private static final String URL = "jdbc:mysql://localhost:3306/hotel_dbt";
     private static final String USERNAME = "root";
-    private static final String PASSWORD = ""; // Change this to your MySQL password
+    private static final String PASSWORD = "Ashen@1234"; // Change this to your MySQL password
 
     static {
         try {
