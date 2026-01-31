@@ -34,31 +34,31 @@ public class RegisterServlet extends HttpServlet {
             contactNumber == null || contactNumber.trim().isEmpty() ||
             nic == null || nic.trim().isEmpty()) {
             
-            response.sendRedirect("register.jsp?error=empty");
+            response.sendRedirect(request.getContextPath() + "/register.jsp?error=empty");
             return;
         }
         
         // Validation: Check if passwords match
         if (!password.equals(confirmPassword)) {
-            response.sendRedirect("register.jsp?error=password");
+            response.sendRedirect(request.getContextPath() + "/register.jsp?error=password");
             return;
         }
         
         // Validation: Check password length
         if (password.length() < 6) {
-            response.sendRedirect("register.jsp?error=length");
+            response.sendRedirect(request.getContextPath() + "/register.jsp?error=length");
             return;
         }
         
         // Validation: Check contact number format (10 digits)
         if (!contactNumber.matches("\\d{10}")) {
-            response.sendRedirect("register.jsp?error=contact");
+            response.sendRedirect(request.getContextPath() + "/register.jsp?error=contact");
             return;
         }
         
         // Validation: Check NIC format (12 digits)
         if (!nic.matches("\\d{12}")) {
-            response.sendRedirect("register.jsp?error=nic");
+            response.sendRedirect(request.getContextPath() + "/register.jsp?error=nic");
             return;
         }
         
@@ -68,20 +68,20 @@ public class RegisterServlet extends HttpServlet {
             
             if (success) {
                 // Registration successful
-                response.sendRedirect("register.jsp?success=true");
+                response.sendRedirect(request.getContextPath() + "/register.jsp?success=true");
             } else {
                 // Username already exists
-                response.sendRedirect("register.jsp?error=username");
+                response.sendRedirect(request.getContextPath() + "/register.jsp?error=username");
             }
         } catch (Exception e) {
             e.printStackTrace();
-            response.sendRedirect("register.jsp?error=system");
+            response.sendRedirect(request.getContextPath() + "/register.jsp?error=system");
         }
     }
     
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
-        response.sendRedirect("register.jsp");
+        response.sendRedirect(request.getContextPath() + "/register.jsp");
     }
 }

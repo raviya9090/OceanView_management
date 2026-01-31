@@ -29,7 +29,7 @@ public class LoginServlet extends HttpServlet {
         // Validate input
         if (username == null || username.trim().isEmpty() || 
             password == null || password.trim().isEmpty()) {
-            response.sendRedirect("login.jsp?error=empty");
+                response.sendRedirect(request.getContextPath() + "/login.jsp?error=empty");
             return;
         }
         
@@ -47,23 +47,23 @@ public class LoginServlet extends HttpServlet {
                 
                 // Redirect based on role
                 if ("ADMIN".equals(user.getRole())) {
-                    response.sendRedirect("admin-dashboard.jsp");
+                    response.sendRedirect(request.getContextPath() + "/admin-dashboard.jsp");
                 } else {
-                    response.sendRedirect("customer-dashboard.jsp");
+                    response.sendRedirect(request.getContextPath() + "/customer-dashboard.jsp");
                 }
             } else {
                 // Invalid credentials
-                response.sendRedirect("login.jsp?error=invalid");
+                response.sendRedirect(request.getContextPath() + "/login.jsp?error=invalid");
             }
         } catch (Exception e) {
             e.printStackTrace();
-            response.sendRedirect("login.jsp?error=system");
+            response.sendRedirect(request.getContextPath() + "/login.jsp?error=system");
         }
     }
     
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
-        response.sendRedirect("login.jsp");
+        response.sendRedirect(request.getContextPath() + "/login.jsp");
     }
 }
