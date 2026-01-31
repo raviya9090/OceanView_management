@@ -225,18 +225,13 @@
     </style>
 </head>
 <body>
-    <!-- Header -->
-  
-
     <!-- Register Form -->
     <div class="register-container">
         <div class="register-box">
             <div class="register-header">
-                <h1> Register</h1>
+                <h1>Register</h1>
                 <p>Create your account to start booking</p>
             </div>
-
-          
 
             <div id="errorMessage" class="error-message"></div>
             <div id="successMessage" class="success-message"></div>
@@ -277,17 +272,17 @@
 
             <div class="form-footer">
                 <p>Already have an account?</p>
-                <a href="./login.jsp">Login Here</a>
+                <a href="login.jsp">Login Here</a>
             </div>
         </div>
     </div>
-
-   
 
     <script>
         function validateForm() {
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
+            const contactNumber = document.getElementById('contactNumber').value;
+            const nic = document.getElementById('nic').value;
             const errorDiv = document.getElementById('errorMessage');
             
             if (password !== confirmPassword) {
@@ -299,6 +294,18 @@
             if (password.length < 6) {
                 errorDiv.style.display = 'block';
                 errorDiv.textContent = 'Password must be at least 6 characters long.';
+                return false;
+            }
+            
+            if (!contactNumber.match(/^\d{10}$/)) {
+                errorDiv.style.display = 'block';
+                errorDiv.textContent = 'Contact number must be exactly 10 digits.';
+                return false;
+            }
+            
+            if (!nic.match(/^\d{12}$/)) {
+                errorDiv.style.display = 'block';
+                errorDiv.textContent = 'NIC must be exactly 12 digits.';
                 return false;
             }
             
@@ -320,6 +327,14 @@
                 errorDiv.textContent = 'Passwords do not match.';
             } else if (error === 'empty') {
                 errorDiv.textContent = 'Please fill in all fields.';
+            } else if (error === 'length') {
+                errorDiv.textContent = 'Password must be at least 6 characters long.';
+            } else if (error === 'contact') {
+                errorDiv.textContent = 'Contact number must be exactly 10 digits.';
+            } else if (error === 'nic') {
+                errorDiv.textContent = 'NIC must be exactly 12 digits.';
+            } else if (error === 'system') {
+                errorDiv.textContent = 'System error occurred. Please try again later.';
             } else {
                 errorDiv.textContent = 'Registration failed. Please try again.';
             }
