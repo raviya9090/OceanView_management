@@ -26,24 +26,38 @@ public class LoginServlet extends HttpServlet {
         String username = request.getParameter("username");
         String password = request.getParameter("password");
         
-        User user = authService.login(username, password);
+        // Validate input
+        if (username == null || username.trim().isEmpty() || 
+            password == null || password.trim().isEmpty()) {
+            response.sendRedirect("login.jsp?error=empty");
+            return;
+        }
         
-        if (user != null) {
-            HttpSession session = request.getSession();
-            session.setAttribute("user", user);
-            session.setAttribute("userId", user.getUserId());
-            session.setAttribute("username", user.getUsername());
-            session.setAttribute("role", user.getRole());
+        try {
+            // Attempt login
+            User user = authService.login(username, password);
             
-            // Redirect based on role
-            if ("ADMIN".equals(user.getRole())) {
-                response.sendRedirect("admin-dashboard.jsp");
+            if (user != null) {
+                // Create session
+                HttpSession session = request.getSession();
+                session.setAttribute("user", user);
+                session.setAttribute("userId", user.getUserId());
+                session.setAttribute("username", user.getUsername());
+                session.setAttribute("role", user.getRole());
+                
+                // Redirect based on role
+                if ("ADMIN".equals(user.getRole())) {
+                    response.sendRedirect("admin-dashboard.jsp");
+                } else {
+                    response.sendRedirect("customer-dashboard.jsp");
+                }
             } else {
-                response.sendRedirect("customer-dashboard.jsp");
+                // Invalid credentials
+                response.sendRedirect("login.jsp?error=invalid");
             }
-        } else {
-            request.setAttribute("errorMessage", "Invalid username or password");
-            request.getRequestDispatcher("login.jsp").forward(request, response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.sendRedirect("login.jsp?error=system");
         }
     }
     

@@ -27,37 +27,55 @@ public class RegisterServlet extends HttpServlet {
         String contactNumber = request.getParameter("contactNumber");
         String nic = request.getParameter("nic");
         
-        // Validation
+        // Validation: Check if all fields are filled
         if (username == null || username.trim().isEmpty() ||
             password == null || password.trim().isEmpty() ||
+            confirmPassword == null || confirmPassword.trim().isEmpty() ||
             contactNumber == null || contactNumber.trim().isEmpty() ||
             nic == null || nic.trim().isEmpty()) {
             
-            request.setAttribute("errorMessage", "All fields are required");
-            request.getRequestDispatcher("register.jsp").forward(request, response);
+            response.sendRedirect("register.jsp?error=empty");
             return;
         }
         
+        // Validation: Check if passwords match
         if (!password.equals(confirmPassword)) {
-            request.setAttribute("errorMessage", "Passwords do not match");
-            request.getRequestDispatcher("register.jsp").forward(request, response);
+            response.sendRedirect("register.jsp?error=password");
             return;
         }
         
+        // Validation: Check password length
         if (password.length() < 6) {
-            request.setAttribute("errorMessage", "Password must be at least 6 characters");
-            request.getRequestDispatcher("register.jsp").forward(request, response);
+            response.sendRedirect("register.jsp?error=length");
             return;
         }
         
-        boolean success = authService.register(username, password, contactNumber, nic);
+        // Validation: Check contact number format (10 digits)
+        if (!contactNumber.matches("\\d{10}")) {
+            response.sendRedirect("register.jsp?error=contact");
+            return;
+        }
         
-        if (success) {
-            request.setAttribute("successMessage", "Registration successful! Please login.");
-            request.getRequestDispatcher("login.jsp").forward(request, response);
-        } else {
-            request.setAttribute("errorMessage", "Username already exists");
-            request.getRequestDispatcher("register.jsp").forward(request, response);
+        // Validation: Check NIC format (12 digits)
+        if (!nic.matches("\\d{12}")) {
+            response.sendRedirect("register.jsp?error=nic");
+            return;
+        }
+        
+        try {
+            // Attempt registration
+            boolean success = authService.register(username, password, contactNumber, nic);
+            
+            if (success) {
+                // Registration successful
+                response.sendRedirect("register.jsp?success=true");
+            } else {
+                // Username already exists
+                response.sendRedirect("register.jsp?error=username");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.sendRedirect("register.jsp?error=system");
         }
     }
     
