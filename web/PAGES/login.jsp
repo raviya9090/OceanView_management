@@ -5,10 +5,10 @@
     if (userSession != null && userSession.getAttribute("userId") != null) {
         String role = (String) userSession.getAttribute("role");
         if ("ADMIN".equals(role)) {
-            response.sendRedirect("admin-dashboard.jsp");
+            response.sendRedirect(request.getContextPath() + "/admin-dashboard.jsp");
             return;
         } else {
-            response.sendRedirect("customer-dashboard.jsp");
+            response.sendRedirect(request.getContextPath() + "/customer-dashboard.jsp");
             return;
         }
     }
@@ -215,7 +215,7 @@
 
             <div id="errorMessage" class="error-message"></div>
 
-            <form action="LoginServlet" method="POST">
+            <form action="${pageContext.request.contextPath}/LoginServlet" method="POST">
                 <div class="form-group">
                     <label for="username">Username</label>
                     <input type="text" id="username" name="username" required 
@@ -233,7 +233,7 @@
 
             <div class="form-footer">
                 <p>Don't have an account?</p>
-                <a href="register.jsp">Register as Guest</a>
+                <a href="${pageContext.request.contextPath}/register.jsp">Register as Guest</a>
             </div>
         </div>
     </div>

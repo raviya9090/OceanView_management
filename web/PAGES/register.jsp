@@ -236,7 +236,7 @@
             <div id="errorMessage" class="error-message"></div>
             <div id="successMessage" class="success-message"></div>
 
-            <form action="RegisterServlet" method="POST" onsubmit="return validateForm()">
+            <form action="${pageContext.request.contextPath}/RegisterServlet" method="POST" onsubmit="return validateForm()">
                 <div class="form-group">
                     <label for="username">Username</label>
                     <input type="text" id="username" name="username" required 
@@ -272,7 +272,7 @@
 
             <div class="form-footer">
                 <p>Already have an account?</p>
-                <a href="login.jsp">Login Here</a>
+                <a href="${pageContext.request.contextPath}/login.jsp">Login Here</a>
             </div>
         </div>
     </div>
@@ -346,7 +346,7 @@
             successDiv.textContent = 'Registration successful! Redirecting to login...';
             
             setTimeout(() => {
-                window.location.href = 'login.jsp';
+                window.location.href = '${pageContext.request.contextPath}/login.jsp';
             }, 2000);
         }
     </script>
