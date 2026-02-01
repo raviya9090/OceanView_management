@@ -1,3 +1,4 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -236,35 +237,35 @@
             <div id="errorMessage" class="error-message"></div>
             <div id="successMessage" class="success-message"></div>
 
-            <form action="${pageContext.request.contextPath}/RegisterServlet" method="POST" onsubmit="return validateForm()">
+            <form action="<%= request.getContextPath() %>/RegisterServlet" method="POST" onsubmit="return validateForm()">
                 <div class="form-group">
                     <label for="username">Username</label>
                     <input type="text" id="username" name="username" required 
-                           placeholder="Choose a unique username">
+                           placeholder="Choose a unique username" autocomplete="username">
                 </div>
 
                 <div class="form-group">
                     <label for="password">Password</label>
                     <input type="password" id="password" name="password" required 
-                           placeholder="Create a strong password">
+                           placeholder="Create a strong password (min 6 characters)" autocomplete="new-password">
                 </div>
 
                 <div class="form-group">
                     <label for="confirmPassword">Confirm Password</label>
                     <input type="password" id="confirmPassword" name="confirmPassword" required 
-                           placeholder="Re-enter your password">
+                           placeholder="Re-enter your password" autocomplete="new-password">
                 </div>
 
                 <div class="form-group">
                     <label for="contactNumber">Contact Number</label>
                     <input type="tel" id="contactNumber" name="contactNumber" required 
-                           placeholder="07XXXXXXXX" pattern="[0-9]{10}">
+                           placeholder="0771234567 (10 digits)" pattern="[0-9]{10}" maxlength="10">
                 </div>
 
                 <div class="form-group">
                     <label for="nic">NIC Number</label>
                     <input type="text" id="nic" name="nic" required 
-                           placeholder="XXXXXXXXXXXX" pattern="[0-9]{12}">
+                           placeholder="123456789012 (12 digits)" pattern="[0-9]{12}" maxlength="12">
                 </div>
 
                 <button type="submit" class="btn-register">Register</button>
@@ -272,7 +273,7 @@
 
             <div class="form-footer">
                 <p>Already have an account?</p>
-                <a href="${pageContext.request.contextPath}/login.jsp">Login Here</a>
+                <a href="<%= request.getContextPath() %>/login.jsp">Login Here</a>
             </div>
         </div>
     </div>
@@ -285,24 +286,31 @@
             const nic = document.getElementById('nic').value;
             const errorDiv = document.getElementById('errorMessage');
             
+            // Hide previous errors
+            errorDiv.style.display = 'none';
+            
+            // Validate password match
             if (password !== confirmPassword) {
                 errorDiv.style.display = 'block';
                 errorDiv.textContent = 'Passwords do not match. Please try again.';
                 return false;
             }
             
+            // Validate password length
             if (password.length < 6) {
                 errorDiv.style.display = 'block';
                 errorDiv.textContent = 'Password must be at least 6 characters long.';
                 return false;
             }
             
+            // Validate contact number
             if (!contactNumber.match(/^\d{10}$/)) {
                 errorDiv.style.display = 'block';
                 errorDiv.textContent = 'Contact number must be exactly 10 digits.';
                 return false;
             }
             
+            // Validate NIC
             if (!nic.match(/^\d{12}$/)) {
                 errorDiv.style.display = 'block';
                 errorDiv.textContent = 'NIC must be exactly 12 digits.';
@@ -346,7 +354,7 @@
             successDiv.textContent = 'Registration successful! Redirecting to login...';
             
             setTimeout(() => {
-                window.location.href = '${pageContext.request.contextPath}/login.jsp';
+                window.location.href = '<%= request.getContextPath() %>/login.jsp?success=true';
             }, 2000);
         }
     </script>

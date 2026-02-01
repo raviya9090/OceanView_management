@@ -8,9 +8,10 @@ public class User {
     private String nic;
     private String role;
     
-    // Constructors
+    // Default Constructor
     public User() {}
     
+    // Parameterized Constructor
     public User(int userId, String username, String password, String contactNumber, String nic, String role) {
         this.userId = userId;
         this.username = username;
@@ -67,5 +68,16 @@ public class User {
     
     public void setRole(String role) {
         this.role = role;
+    }
+    
+    @Override
+    public String toString() {
+        return "User{" +
+                "userId=" + userId +
+                ", username='" + username + '\'' +
+                ", contactNumber='" + contactNumber + '\'' +
+                ", nic='" + nic + '\'' +
+                ", role='" + role + '\'' +
+                '}';
     }
 }

@@ -173,6 +173,16 @@
             display: none;
         }
 
+        .success-message {
+            background: #e5ffe5;
+            color: #2d7a2d;
+            padding: 0.8rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid #2d7a2d;
+            display: none;
+        }
+
         .back-home {
             display: inline-block;
             color: #ff6b35;
@@ -214,18 +224,19 @@
             </div>
 
             <div id="errorMessage" class="error-message"></div>
+            <div id="successMessage" class="success-message"></div>
 
-            <form action="${pageContext.request.contextPath}/LoginServlet" method="POST">
+            <form action="<%= request.getContextPath() %>/LoginServlet" method="POST">
                 <div class="form-group">
                     <label for="username">Username</label>
                     <input type="text" id="username" name="username" required 
-                           placeholder="Enter your username">
+                           placeholder="Enter your username" autocomplete="username">
                 </div>
 
                 <div class="form-group">
                     <label for="password">Password</label>
                     <input type="password" id="password" name="password" required 
-                           placeholder="Enter your password">
+                           placeholder="Enter your password" autocomplete="current-password">
                 </div>
 
                 <button type="submit" class="btn-login">Login</button>
@@ -233,15 +244,16 @@
 
             <div class="form-footer">
                 <p>Don't have an account?</p>
-                <a href="${pageContext.request.contextPath}/register.jsp">Register as Guest</a>
+                <a href="<%= request.getContextPath() %>/register.jsp">Register as Guest</a>
             </div>
         </div>
     </div>
 
     <script>
-        // Display error message if passed from servlet
+        // Display error or success message if passed from servlet
         const urlParams = new URLSearchParams(window.location.search);
         const error = urlParams.get('error');
+        const success = urlParams.get('success');
         
         if (error) {
             const errorDiv = document.getElementById('errorMessage');
@@ -258,6 +270,12 @@
             } else {
                 errorDiv.textContent = 'An error occurred. Please try again.';
             }
+        }
+        
+        if (success === 'true') {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.style.display = 'block';
+            successDiv.textContent = 'Registration successful! Please login with your credentials.';
         }
     </script>
 </body>
