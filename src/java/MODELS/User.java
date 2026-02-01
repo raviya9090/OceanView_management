@@ -8,10 +8,11 @@ public class User {
     private String nic;
     private String role;
     
-    // Default Constructor
-    public User() {}
+    // Default constructor
+    public User() {
+    }
     
-    // Parameterized Constructor
+    // Parameterized constructor
     public User(int userId, String username, String password, String contactNumber, String nic, String role) {
         this.userId = userId;
         this.username = username;
