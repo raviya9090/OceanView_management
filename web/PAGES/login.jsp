@@ -244,7 +244,7 @@
 
             <div class="form-footer">
                 <p>Don't have an account?</p>
-                <a href="<%= request.getContextPath() %>/register.jsp">Register as Guest</a>
+                <a href="./register.jsp">Register as Guest</a>
             </div>
         </div>
     </div>

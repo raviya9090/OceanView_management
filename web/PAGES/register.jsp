@@ -273,7 +273,7 @@
 
             <div class="form-footer">
                 <p>Already have an account?</p>
-                <a href="<%= request.getContextPath() %>/login.jsp">Login Here</a>
+                <a href="./login.jsp">Login Here</a>
             </div>
         </div>
     </div>
