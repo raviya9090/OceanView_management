@@ -88,7 +88,7 @@ public class RegisterServlet extends HttpServlet {
         if (success) {
             // Registration successful - redirect to login with success message
             System.out.println("Registration successful for username: " + username);
-            response.sendRedirect(request.getContextPath() + "/login.jsp?success=true");
+            response.sendRedirect( "./login.jsp?success");
         } else {
             // Registration failed - username already exists
             System.err.println("Registration failed: Username already exists: " + username);
