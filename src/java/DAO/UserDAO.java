@@ -121,6 +121,7 @@ public class UserDAO {
         user.setContactNumber(rs.getString("contact_number"));
         user.setNic(rs.getString("nic"));
         user.setRole(rs.getString("role"));
+        user.setCreatedAt(rs.getTimestamp("created_at"));
         return user;
     }
     
