@@ -1,3 +1,36 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="java.util.List" %>
+<%@ page import="MODELS.Room" %>
+<%@ page import="SERVICES.RoomService" %>
+<%
+    // ── Auth guard ────────────────────────────────────────────────────────────
+    String role = (String) session.getAttribute("role");
+    if (role == null || !role.equalsIgnoreCase("ADMIN")) {
+        response.sendRedirect(request.getContextPath() + "/login.jsp");
+        return;
+    }
+
+    // ── Load rooms from DB ────────────────────────────────────────────────────
+    List<Room> rooms = (List<Room>) request.getAttribute("rooms");
+    if (rooms == null) {
+        RoomService roomService = new RoomService();
+        rooms = roomService.getAllRooms();
+    }
+
+    // ── Stats ─────────────────────────────────────────────────────────────────
+    int totalRooms = rooms.size();
+    long availableCount = rooms.stream().filter(r -> "Available".equals(r.getAvailability())).count();
+
+    // ── Active tab (rooms or reservations) ───────────────────────────────────
+    String activeTab = (String) request.getAttribute("activeTab");
+    if (activeTab == null) activeTab = "reservations";
+
+    // ── Flash messages ────────────────────────────────────────────────────────
+    String msgType = (String) session.getAttribute("msgType");
+    String msgText = (String) session.getAttribute("msgText");
+    session.removeAttribute("msgType");
+    session.removeAttribute("msgText");
+%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -417,6 +450,27 @@
             font-weight: bold;
         }
 
+        /* Alert */
+        .alert {
+            padding: 0.9rem 1.2rem;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+            font-size: 0.88rem;
+            font-weight: 600;
+        }
+
+        .alert-success {
+            background: #e5ffe5;
+            color: #2d7a2d;
+            border-left: 4px solid #2d7a2d;
+        }
+
+        .alert-error {
+            background: #ffe5e5;
+            color: #d32f2f;
+            border-left: 4px solid #d32f2f;
+        }
+
         @media (max-width: 768px) {
             .action-bar {
                 flex-direction: column;
@@ -460,15 +514,20 @@
             <p>Manage reservations, rooms</p>
         </div>
 
+        <!-- Flash Message -->
+        <% if (msgText != null) { %>
+        <div class="alert alert-<%= msgType %>"><%= msgText %></div>
+        <% } %>
+
         <!-- Stats Cards -->
         <div class="stats-grid">
             <div class="stat-card">
                 <h3>Total Rooms</h3>
-                <p>15</p>
+                <p><%= totalRooms %></p>
             </div>
             <div class="stat-card">
                 <h3>Available Rooms</h3>
-                <p>11</p>
+                <p><%= availableCount %></p>
             </div>
             <div class="stat-card">
                 <h3>Total Reservations</h3>
@@ -482,15 +541,13 @@
 
         <!-- Tabs -->
         <div class="tabs">
-                        <button class="tab" onclick="openTab('rooms')">Rooms</button>
-
-            <button class="tab active" onclick="openTab('reservations')">Reservations</button>
+            <button class="tab <%= "rooms".equals(activeTab) ? "active" : "" %>" onclick="openTab('rooms')">Rooms</button>
+            <button class="tab <%= "reservations".equals(activeTab) ? "active" : "" %>" onclick="openTab('reservations')">Reservations</button>
         </div>
 
         <!-- Reservations Tab -->
-        <div id="reservations" class="tab-content active">
+        <div id="reservations" class="tab-content <%= "reservations".equals(activeTab) ? "active" : "" %>">
             <div class="action-bar">
-              
                 <button class="btn-add" onclick="openModal('addReservation')">Add Reservation</button>
             </div>
 
@@ -564,9 +621,8 @@
         </div>
 
         <!-- Rooms Tab -->
-        <div id="rooms" class="tab-content">
+        <div id="rooms" class="tab-content <%= "rooms".equals(activeTab) ? "active" : "" %>">
             <div class="action-bar">
-              
                 <button class="btn-add" onclick="openModal('addRoom')">Add Room</button>
             </div>
 
@@ -584,62 +640,47 @@
                         </tr>
                     </thead>
                     <tbody>
+                        <%
+                            for (Room room : rooms) {
+                                String avail = room.getAvailability();
+                                String badgeClass = "status-available";
+                                if ("Occupied".equalsIgnoreCase(avail))         badgeClass = "status-occupied";
+                                else if ("Maintenance".equalsIgnoreCase(avail)) badgeClass = "status-maintenance";
+
+                                // Safe for JS single-quoted string
+                                String safeDesc = room.getDescription() != null
+                                    ? room.getDescription().replace("\\", "\\\\").replace("'", "\\'")
+                                    : "";
+                                // Safe for HTML display
+                                String displayDesc = room.getDescription() != null ? room.getDescription() : "";
+                        %>
                         <tr>
-                            <td>1</td>
-                            <td>101</td>
-                            <td>Standard</td>
-                            <td>5,000.00</td>
-                            <td><span class="status-badge status-available">Available</span></td>
-                            <td>Standard room with sea view</td>
+                            <td><%= room.getRoomId() %></td>
+                            <td><%= room.getRoomNumber() %></td>
+                            <td><%= room.getRoomType() %></td>
+                            <td><%= String.format("%,.2f", room.getPricePerNight()) %></td>
+                            <td><span class="status-badge <%= badgeClass %>"><%= avail %></span></td>
+                            <td><%= displayDesc %></td>
                             <td>
                                 <div class="action-buttons">
-                                    <button class="btn-edit" onclick="editRoom(1)">Edit</button>
-                                    <button class="btn-delete" onclick="deleteRoom(1)">Delete</button>
+                                    <button class="btn-edit" onclick="openEditModal(
+                                        <%= room.getRoomId() %>,
+                                        '<%= room.getRoomNumber() %>',
+                                        '<%= room.getRoomType() %>',
+                                        '<%= room.getPricePerNight() %>',
+                                        '<%= avail %>',
+                                        '<%= safeDesc %>'
+                                    )">Edit</button>
+                                    <button class="btn-delete" onclick="confirmDelete(<%= room.getRoomId() %>)">Delete</button>
                                 </div>
                             </td>
                         </tr>
+                        <% } %>
+                        <% if (rooms.isEmpty()) { %>
                         <tr>
-                            <td>2</td>
-                            <td>102</td>
-                            <td>Standard</td>
-                            <td>5,000.00</td>
-                            <td><span class="status-badge status-available">Available</span></td>
-                            <td>Standard room with garden view</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn-edit" onclick="editRoom(2)">Edit</button>
-                                    <button class="btn-delete" onclick="deleteRoom(2)">Delete</button>
-                                </div>
-                            </td>
+                            <td colspan="7" style="text-align:center; padding:2rem; color:#999;">No rooms found.</td>
                         </tr>
-                        <tr>
-                            <td>3</td>
-                            <td>103</td>
-                            <td>Standard</td>
-                            <td>5,000.00</td>
-                            <td><span class="status-badge status-occupied">Occupied</span></td>
-                            <td>Standard room with balcony</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn-edit" onclick="editRoom(3)">Edit</button>
-                                    <button class="btn-delete" onclick="deleteRoom(3)">Delete</button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>8</td>
-                            <td>204</td>
-                            <td>Deluxe</td>
-                            <td>8,000.00</td>
-                            <td><span class="status-badge status-maintenance">Maintenance</span></td>
-                            <td>Deluxe room - under maintenance</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn-edit" onclick="editRoom(8)">Edit</button>
-                                    <button class="btn-delete" onclick="deleteRoom(8)">Delete</button>
-                                </div>
-                            </td>
-                        </tr>
+                        <% } %>
                     </tbody>
                 </table>
             </div>
@@ -647,10 +688,7 @@
 
         <!-- Users Tab -->
         <div id="users" class="tab-content">
-            <div class="action-bar">
-            
-            </div>
-
+            <div class="action-bar"></div>
             <div class="table-container">
                 <table>
                     <thead>
@@ -713,9 +751,10 @@
                 </table>
             </div>
         </div>
-    </div>
 
-    <!-- Add/Edit Reservation Modal -->
+    </div><!-- /container -->
+
+    <!-- Add/Edit Reservation Modal (unchanged from original) -->
     <div id="addReservation" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal('addReservation')">&times;</span>
@@ -763,22 +802,23 @@
         </div>
     </div>
 
-    <!-- Add/Edit Room Modal -->
+    <!-- Add Room Modal — posts to RoomServlet -->
     <div id="addRoom" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal('addRoom')">&times;</span>
             <div class="modal-header">
                 <h2>Add New Room</h2>
             </div>
-            <form>
+            <form action="<%= request.getContextPath() %>/RoomServlet" method="POST">
+                <input type="hidden" name="action" value="add">
                 <div class="form-row">
                     <div class="form-group">
                         <label>Room Number</label>
-                        <input type="text" placeholder="e.g., 105" required>
+                        <input type="text" name="roomNumber" placeholder="e.g., 105" required>
                     </div>
                     <div class="form-group">
                         <label>Room Type</label>
-                        <select required>
+                        <select name="roomType" required>
                             <option value="">Select Type</option>
                             <option value="Standard">Standard</option>
                             <option value="Deluxe">Deluxe</option>
@@ -790,11 +830,11 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Price Per Night</label>
-                        <input type="number" placeholder="0.00" step="0.01" required>
+                        <input type="number" name="pricePerNight" placeholder="0.00" step="0.01" min="1" required>
                     </div>
                     <div class="form-group">
                         <label>Availability</label>
-                        <select required>
+                        <select name="availability" required>
                             <option value="Available">Available</option>
                             <option value="Occupied">Occupied</option>
                             <option value="Maintenance">Maintenance</option>
@@ -803,22 +843,76 @@
                 </div>
                 <div class="form-group">
                     <label>Description</label>
-                    <textarea rows="3" placeholder="Room description..." required></textarea>
+                    <textarea rows="3" name="description" placeholder="Room description..."></textarea>
                 </div>
                 <button type="submit" class="btn-submit">Add Room</button>
             </form>
         </div>
     </div>
 
+    <!-- Edit Room Modal — posts to RoomServlet -->
+    <div id="editRoom" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('editRoom')">&times;</span>
+            <div class="modal-header">
+                <h2>Edit Room</h2>
+            </div>
+            <form action="<%= request.getContextPath() %>/RoomServlet" method="POST">
+                <input type="hidden" name="action" value="edit">
+                <input type="hidden" name="roomId" id="editRoomId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Room Number</label>
+                        <input type="text" name="roomNumber" id="editRoomNumber" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Room Type</label>
+                        <select name="roomType" id="editRoomType" required>
+                            <option value="Standard">Standard</option>
+                            <option value="Deluxe">Deluxe</option>
+                            <option value="Luxury">Luxury</option>
+                            <option value="Suite">Suite</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Price Per Night</label>
+                        <input type="number" name="pricePerNight" id="editPricePerNight" step="0.01" min="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Availability</label>
+                        <select name="availability" id="editAvailability" required>
+                            <option value="Available">Available</option>
+                            <option value="Occupied">Occupied</option>
+                            <option value="Maintenance">Maintenance</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea rows="3" name="description" id="editDescription"></textarea>
+                </div>
+                <button type="submit" class="btn-submit">Update Room</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Hidden delete form submitted by JS -->
+    <form id="deleteForm" action="<%= request.getContextPath() %>/RoomServlet" method="POST" style="display:none;">
+        <input type="hidden" name="action" value="delete">
+        <input type="hidden" name="roomId" id="deleteRoomId">
+    </form>
+
     <script>
         // Tab functionality
         function openTab(tabName) {
             const contents = document.querySelectorAll('.tab-content');
             const tabs = document.querySelectorAll('.tab');
-            
+
             contents.forEach(content => content.classList.remove('active'));
             tabs.forEach(tab => tab.classList.remove('active'));
-            
+
             document.getElementById(tabName).classList.add('active');
             event.target.classList.add('active');
         }
@@ -838,52 +932,42 @@
             }
         }
 
-        // CRUD Operations - Reservations
-        function viewReservation(id) {
-            alert('Viewing reservation #' + id);
-            // Implement view logic
+        // Open Edit Room modal and pre-fill all fields
+        function openEditModal(id, roomNumber, roomType, price, availability, description) {
+            document.getElementById('editRoomId').value        = id;
+            document.getElementById('editRoomNumber').value    = roomNumber;
+            document.getElementById('editRoomType').value      = roomType;
+            document.getElementById('editPricePerNight').value = price;
+            document.getElementById('editAvailability').value  = availability;
+            document.getElementById('editDescription').value   = description;
+            openModal('editRoom');
         }
 
+        // Confirm then submit delete via hidden form
+        function confirmDelete(id) {
+            if (confirm('Are you sure you want to delete this room?')) {
+                document.getElementById('deleteRoomId').value = id;
+                document.getElementById('deleteForm').submit();
+            }
+        }
+
+        // CRUD Operations - Reservations
         function editReservation(id) {
             openModal('addReservation');
-            // Load data and populate form
         }
 
         function deleteReservation(id) {
             if (confirm('Are you sure you want to delete this reservation?')) {
                 alert('Deleting reservation #' + id);
-                // Implement delete logic
-            }
-        }
-
-        // CRUD Operations - Rooms
-        function editRoom(id) {
-            openModal('addRoom');
-            // Load data and populate form
-        }
-
-        function deleteRoom(id) {
-            if (confirm('Are you sure you want to delete this room?')) {
-                alert('Deleting room #' + id);
-                // Implement delete logic
             }
         }
 
         // CRUD Operations - Users
-        function viewUser(id) {
-            alert('Viewing user #' + id);
-            // Implement view logic
-        }
-
-        function editUser(id) {
-            alert('Editing user #' + id);
-            // Implement edit logic
-        }
-
+        function viewUser(id)   { alert('Viewing user #' + id); }
+        function editUser(id)   { alert('Editing user #' + id); }
         function deleteUser(id) {
             if (confirm('Are you sure you want to delete this user?')) {
                 alert('Deleting user #' + id);
-                // Implement delete logic
             }
         }
 
@@ -893,6 +977,12 @@
                 window.location.href = 'LogoutServlet';
             }
         }
+
+        // Auto-hide flash alert after 4 seconds
+        setTimeout(function() {
+            var alertEl = document.querySelector('.alert');
+            if (alertEl) alertEl.style.display = 'none';
+        }, 4000);
     </script>
 </body>
 </html>

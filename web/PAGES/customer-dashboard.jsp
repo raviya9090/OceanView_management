@@ -1,3 +1,28 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="java.util.List" %>
+<%@ page import="MODELS.Room" %>
+<%@ page import="SERVICES.RoomService" %>
+<%
+    // ── Auth guard ────────────────────────────────────────────────────────────
+    String username = (String) session.getAttribute("username");
+    if (username == null) {
+        response.sendRedirect(request.getContextPath() + "/login.jsp");
+        return;
+    }
+
+    // ── Load ALL rooms from DB (available + unavailable) ──────────────────────
+    List<Room> rooms = (List<Room>) request.getAttribute("rooms");
+    if (rooms == null) {
+        RoomService roomService = new RoomService();
+        rooms = roomService.getAllRooms();
+    }
+
+    // ── Flash messages ────────────────────────────────────────────────────────
+    String msgType = (String) session.getAttribute("msgType");
+    String msgText = (String) session.getAttribute("msgText");
+    session.removeAttribute("msgType");
+    session.removeAttribute("msgText");
+%>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -18,130 +43,130 @@
             }
 
             /* Header */
-          header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    background: rgba(255, 255, 255, 0.98);
-    backdrop-filter: blur(10px);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    padding: 1rem 0;
-}
+            header {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 1000;
+                background: rgba(255, 255, 255, 0.98);
+                backdrop-filter: blur(10px);
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+                padding: 1rem 0;
+            }
 
-nav {
-    max-width: 1400px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 2rem;
-}
+            nav {
+                max-width: 1400px;
+                margin: 0 auto;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0 2rem;
+            }
 
-.logo {
-    font-size: 1.6rem;
-    font-weight: bold;
-    color: #ff6b35;
-    text-decoration: none;
-    transition: color 0.3s ease;
-}
+            .logo {
+                font-size: 1.6rem;
+                font-weight: bold;
+                color: #ff6b35;
+                text-decoration: none;
+                transition: color 0.3s ease;
+            }
 
-.logo:hover {
-    color: #e55a2b;
-}
+            .logo:hover {
+                color: #e55a2b;
+            }
 
-/* Navigation Menu */
-.nav-menu {
-    display: flex;
-    align-items: center;
-    gap: 2rem;
-}
+            /* Navigation Menu */
+            .nav-menu {
+                display: flex;
+                align-items: center;
+                gap: 2rem;
+            }
 
-.nav-links {
-    display: flex;
-    gap: 2rem;
-    align-items: center;
-}
+            .nav-links {
+                display: flex;
+                gap: 2rem;
+                align-items: center;
+            }
 
-.nav-links a {
-    color: #2c3e50;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 0.95rem;
-    transition: color 0.3s ease;
-    position: relative;
-}
+            .nav-links a {
+                color: #2c3e50;
+                text-decoration: none;
+                font-weight: 600;
+                font-size: 0.95rem;
+                transition: color 0.3s ease;
+                position: relative;
+            }
 
-.nav-links a:hover {
-    color: #ff6b35;
-}
+            .nav-links a:hover {
+                color: #ff6b35;
+            }
 
-.nav-links a.active {
-    color: #ff6b35;
-}
+            .nav-links a.active {
+                color: #ff6b35;
+            }
 
-.nav-links a::after {
-    content: '';
-    position: absolute;
-    width: 0;
-    height: 2px;
-    bottom: -5px;
-    left: 0;
-    background-color: #ff6b35;
-    transition: width 0.3s ease;
-}
+            .nav-links a::after {
+                content: '';
+                position: absolute;
+                width: 0;
+                height: 2px;
+                bottom: -5px;
+                left: 0;
+                background-color: #ff6b35;
+                transition: width 0.3s ease;
+            }
 
-.nav-links a:hover::after,
-.nav-links a.active::after {
-    width: 100%;
-}
+            .nav-links a:hover::after,
+            .nav-links a.active::after {
+                width: 100%;
+            }
 
-/* Navigation Buttons */
-.nav-buttons {
-    display: flex;
-    gap: 1rem;
-}
+            /* Navigation Buttons */
+            .nav-buttons {
+                display: flex;
+                gap: 1rem;
+            }
 
-.btn {
-    padding: 0.6rem 1.5rem;
-    border: none;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-weight: 600;
-    text-decoration: none;
-    display: inline-block;
-}
+            .btn {
+                padding: 0.6rem 1.5rem;
+                border: none;
+                border-radius: 8px;
+                font-size: 0.9rem;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                font-weight: 600;
+                text-decoration: none;
+                display: inline-block;
+            }
 
-.btn-login {
-    background: transparent;
-    color: #ff6b35;
-    border: 2px solid #ff6b35;
-}
+            .btn-login {
+                background: transparent;
+                color: #ff6b35;
+                border: 2px solid #ff6b35;
+            }
 
-.btn-login:hover {
-    background: #ff6b35;
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
-}
+            .btn-login:hover {
+                background: #ff6b35;
+                color: white;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+            }
 
-.btn-register {
-    background: #ff6b35;
-    color: white;
-    border: 2px solid #ff6b35;
-}
+            .btn-register {
+                background: #ff6b35;
+                color: white;
+                border: 2px solid #ff6b35;
+            }
 
-.btn-register:hover {
-    background: #e55a2b;
-    border-color: #e55a2b;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
-}
+            .btn-register:hover {
+                background: #e55a2b;
+                border-color: #e55a2b;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
+            }
 
-      .btn-logout {
+            .btn-logout {
                 padding: 0.5rem 1.2rem;
                 background: #ff6b35;
                 color: white;
@@ -153,112 +178,112 @@ nav {
                 transition: all 0.3s ease;
             }
 
-.btn-logout:hover {
-    background: #e55a2b;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
-}
+            .btn-logout:hover {
+                background: #e55a2b;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
+            }
 
-/* User Info (for Guest Dashboard) */
-.user-info {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-}
+            /* User Info (for Guest Dashboard) */
+            .user-info {
+                display: flex;
+                align-items: center;
+                gap: 1.5rem;
+            }
 
-.username {
-    color: #2c3e50;
-    font-weight: 600;
-    font-size: 0.9rem;
-    padding: 0.5rem 1rem;
-    background: #fff5f2;
-    border-radius: 6px;
-}
+            .username {
+                color: #2c3e50;
+                font-weight: 600;
+                font-size: 0.9rem;
+                padding: 0.5rem 1rem;
+                background: #fff5f2;
+                border-radius: 6px;
+            }
 
-/* Mobile Menu Button */
-.mobile-menu-btn {
-    display: none;
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    color: #ff6b35;
-    cursor: pointer;
-    padding: 0.5rem;
-}
+            /* Mobile Menu Button */
+            .mobile-menu-btn {
+                display: none;
+                background: none;
+                border: none;
+                font-size: 1.5rem;
+                color: #ff6b35;
+                cursor: pointer;
+                padding: 0.5rem;
+            }
 
-.mobile-menu-btn:hover {
-    color: #e55a2b;
-}
+            .mobile-menu-btn:hover {
+                color: #e55a2b;
+            }
 
-/* Mobile Navigation */
-.mobile-nav {
-    display: none;
-    position: fixed;
-    top: 70px;
-    left: 0;
-    right: 0;
-    background: white;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    padding: 1rem 2rem;
-    flex-direction: column;
-    gap: 1rem;
-}
+            /* Mobile Navigation */
+            .mobile-nav {
+                display: none;
+                position: fixed;
+                top: 70px;
+                left: 0;
+                right: 0;
+                background: white;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+                padding: 1rem 2rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
 
-.mobile-nav.active {
-    display: flex;
-}
+            .mobile-nav.active {
+                display: flex;
+            }
 
-.mobile-nav a {
-    color: #2c3e50;
-    text-decoration: none;
-    font-weight: 600;
-    padding: 0.8rem;
-    border-radius: 6px;
-    transition: all 0.3s ease;
-}
+            .mobile-nav a {
+                color: #2c3e50;
+                text-decoration: none;
+                font-weight: 600;
+                padding: 0.8rem;
+                border-radius: 6px;
+                transition: all 0.3s ease;
+            }
 
-.mobile-nav a:hover {
-    background: #fff5f2;
-    color: #ff6b35;
-}
+            .mobile-nav a:hover {
+                background: #fff5f2;
+                color: #ff6b35;
+            }
 
-/* Responsive Design */
-@media (max-width: 968px) {
-    nav {
-        padding: 0 1.5rem;
-    }
+            /* Responsive Design */
+            @media (max-width: 968px) {
+                nav {
+                    padding: 0 1.5rem;
+                }
 
-    .logo {
-        font-size: 1.4rem;
-    }
+                .logo {
+                    font-size: 1.4rem;
+                }
 
-    .nav-menu {
-        display: none;
-    }
+                .nav-menu {
+                    display: none;
+                }
 
-    .mobile-menu-btn {
-        display: block;
-    }
+                .mobile-menu-btn {
+                    display: block;
+                }
 
-    .user-info {
-        gap: 1rem;
-    }
+                .user-info {
+                    gap: 1rem;
+                }
 
-    .username {
-        display: none;
-    }
-}
+                .username {
+                    display: none;
+                }
+            }
 
-@media (max-width: 480px) {
-    .logo {
-        font-size: 1.2rem;
-    }
+            @media (max-width: 480px) {
+                .logo {
+                    font-size: 1.2rem;
+                }
 
-    .btn {
-        padding: 0.5rem 1rem;
-        font-size: 0.85rem;
-    }
-}
+                .btn {
+                    padding: 0.5rem 1rem;
+                    font-size: 0.85rem;
+                }
+            }
 
             /* Main Container */
             .container {
@@ -343,6 +368,20 @@ nav {
                 border-color: #ff6b35;
             }
 
+            /* Disabled/unavailable room card */
+            .room-card.unavailable {
+                opacity: 0.6;
+                background: #fafafa;
+                border-color: #e0e0e0;
+            }
+
+            .room-card.unavailable:hover {
+                transform: none;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+                border-color: #e0e0e0;
+                cursor: default;
+            }
+
             .room-image {
                 width: 100%;
                 height: 180px;
@@ -352,6 +391,12 @@ nav {
                 justify-content: center;
                 font-size: 3rem;
                 color: #ff6b35;
+            }
+
+            /* Greyed image for unavailable rooms */
+            .room-card.unavailable .room-image {
+                background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
+                color: #aaa;
             }
 
             .room-details {
@@ -378,6 +423,26 @@ nav {
                 color: #ff6b35;
                 border-radius: 12px;
                 font-weight: 600;
+            }
+
+            /* Availability badge shown on unavailable rooms */
+            .room-status-badge {
+                font-size: 0.72rem;
+                padding: 0.25rem 0.7rem;
+                border-radius: 12px;
+                font-weight: 600;
+                display: inline-block;
+                margin-bottom: 0.6rem;
+            }
+
+            .room-status-occupied {
+                background: #ffe5e5;
+                color: #d32f2f;
+            }
+
+            .room-status-maintenance {
+                background: #fff5e5;
+                color: #e67e22;
             }
 
             .room-description {
@@ -420,6 +485,7 @@ nav {
             .btn-book:disabled {
                 background: #ccc;
                 cursor: not-allowed;
+                color: #888;
             }
 
             /* Table */
@@ -669,6 +735,27 @@ nav {
                 margin-bottom: 0.5rem;
             }
 
+            /* Alert */
+            .alert {
+                padding: 0.9rem 1.2rem;
+                border-radius: 6px;
+                margin-bottom: 1.5rem;
+                font-size: 0.88rem;
+                font-weight: 600;
+            }
+
+            .alert-success {
+                background: #e5ffe5;
+                color: #2d7a2d;
+                border-left: 4px solid #2d7a2d;
+            }
+
+            .alert-error {
+                background: #ffe5e5;
+                color: #d32f2f;
+                border-left: 4px solid #d32f2f;
+            }
+
             @media (max-width: 768px) {
                 .rooms-grid {
                     grid-template-columns: 1fr;
@@ -697,7 +784,7 @@ nav {
                     <a href="./home.jsp" class="btn btn-login">Home</a>
                     <a href="./contact-us.jsp" class="btn btn-login">Contact Us</a>
                     <a href="./customer-dashboard.jsp" class="btn btn-login">Bookings</a>
-                    <span class="username">Guest</span>
+                    <span class="username"><%= username %></span>
                     <button class="btn-logout" onclick="logout()">Logout</button>
                 </div>
             </nav>
@@ -705,7 +792,11 @@ nav {
 
         <!-- Main Container -->
         <div class="container" style="margin-top: 100px">
-          
+
+            <!-- Flash Message -->
+            <% if (msgText != null) { %>
+            <div class="alert alert-<%= msgType %>"><%= msgText %></div>
+            <% } %>
 
             <!-- Tabs -->
             <div class="tabs">
@@ -719,7 +810,7 @@ nav {
                     <div class="filter-row">
                         <div class="form-group">
                             <label>Room Type</label>
-                            <select>
+                            <select id="filterType" onchange="filterRooms()">
                                 <option value="">All Types</option>
                                 <option value="Standard">Standard</option>
                                 <option value="Deluxe">Deluxe</option>
@@ -729,105 +820,72 @@ nav {
                         </div>
                         <div class="form-group">
                             <label>Check-In Date</label>
-                            <input type="date">
+                            <input type="date" id="filterCheckIn">
                         </div>
                         <div class="form-group">
                             <label>Check-Out Date</label>
-                            <input type="date">
+                            <input type="date" id="filterCheckOut">
                         </div>
                     </div>
                 </div>
 
-                <div class="rooms-grid">
-                    <!-- Room Card 1 -->
-                    <div class="room-card">
-                        <div class="room-image">ROOM</div>
-                        <div class="room-details">
-                            <div class="room-header">
-                                <div class="room-number">Room 101</div>
-                                <div class="room-type">Standard</div>
-                            </div>
-                            <div class="room-description">
-                                Standard room with sea view and single bed. Perfect for solo travelers.
-                            </div>
-                            <div class="room-price">
-                                5,000.00 LKR <span>/ night</span>
-                            </div>
-                            <button class="btn-book" onclick="openBookingModal(1, '101', 'Standard', 5000)">Book Now</button>
-                        </div>
-                    </div>
+                <div class="rooms-grid" id="roomsGrid">
+                    <%
+                        for (Room room : rooms) {
+                            boolean isAvailable = "Available".equalsIgnoreCase(room.getAvailability());
+                            String cardClass    = isAvailable ? "room-card" : "room-card unavailable";
 
-                    <!-- Room Card 2 -->
-                    <div class="room-card">
-                        <div class="room-image">ROOM</div>
-                        <div class="room-details">
-                            <div class="room-header">
-                                <div class="room-number">Room 102</div>
-                                <div class="room-type">Standard</div>
-                            </div>
-                            <div class="room-description">
-                                Standard room with garden view and double bed. Comfortable and cozy.
-                            </div>
-                            <div class="room-price">
-                                5,000.00 LKR <span>/ night</span>
-                            </div>
-                            <button class="btn-book" onclick="openBookingModal(2, '102', 'Standard', 5000)">Book Now</button>
-                        </div>
-                    </div>
+                            // Icon per type
+                            String icon = "🏨";
+                            if ("Deluxe".equals(room.getRoomType()))   icon = "🌊";
+                            else if ("Luxury".equals(room.getRoomType())) icon = "⭐";
+                            else if ("Suite".equals(room.getRoomType())) icon = "👑";
 
-                    <!-- Room Card 3 -->
-                    <div class="room-card">
-                        <div class="room-image">ROOM</div>
-                        <div class="room-details">
-                            <div class="room-header">
-                                <div class="room-number">Room 201</div>
-                                <div class="room-type">Deluxe</div>
-                            </div>
-                            <div class="room-description">
-                                Deluxe room with balcony and sea view. Spacious and elegant.
-                            </div>
-                            <div class="room-price">
-                                8,000.00 LKR <span>/ night</span>
-                            </div>
-                            <button class="btn-book" onclick="openBookingModal(5, '201', 'Deluxe', 8000)">Book Now</button>
-                        </div>
-                    </div>
+                            // Status badge for non-available rooms
+                            String statusBadgeClass = "room-status-occupied";
+                            String statusLabel = room.getAvailability();
+                            if ("Maintenance".equalsIgnoreCase(room.getAvailability()))
+                                statusBadgeClass = "room-status-maintenance";
 
-                    <!-- Room Card 4 -->
-                    <div class="room-card">
-                        <div class="room-image">ROOM</div>
+                            // Description fallback
+                            String desc = (room.getDescription() != null && !room.getDescription().isEmpty())
+                                ? room.getDescription()
+                                : room.getRoomType() + " room — comfortable and well-appointed.";
+                    %>
+                    <div class="<%= cardClass %>" data-type="<%= room.getRoomType() %>">
+                        <div class="room-image"><%= icon %></div>
                         <div class="room-details">
                             <div class="room-header">
-                                <div class="room-number">Room 301</div>
-                                <div class="room-type">Luxury</div>
+                                <div class="room-number">Room <%= room.getRoomNumber() %></div>
+                                <div class="room-type"><%= room.getRoomType() %></div>
                             </div>
-                            <div class="room-description">
-                                Luxury room with king bed and ocean view. Premium comfort.
-                            </div>
+                            <% if (!isAvailable) { %>
+                            <span class="room-status-badge <%= statusBadgeClass %>"><%= statusLabel %></span>
+                            <% } %>
+                            <div class="room-description"><%= desc %></div>
                             <div class="room-price">
-                                12,000.00 LKR <span>/ night</span>
+                                <%= String.format("%,.2f", room.getPricePerNight()) %> LKR <span>/ night</span>
                             </div>
-                            <button class="btn-book" onclick="openBookingModal(9, '301', 'Luxury', 12000)">Book Now</button>
+                            <% if (isAvailable) { %>
+                            <button class="btn-book" onclick="openBookingModal(
+                                <%= room.getRoomId() %>,
+                                '<%= room.getRoomNumber() %>',
+                                '<%= room.getRoomType() %>',
+                                <%= room.getPricePerNight() %>
+                            )">Book Now</button>
+                            <% } else { %>
+                            <button class="btn-book" disabled>Not Available</button>
+                            <% } %>
                         </div>
                     </div>
+                    <% } %>
 
-                    <!-- Room Card 5 -->
-                    <div class="room-card">
-                        <div class="room-image">ROOM</div>
-                        <div class="room-details">
-                            <div class="room-header">
-                                <div class="room-number">Room 401</div>
-                                <div class="room-type">Suite</div>
-                            </div>
-                            <div class="room-description">
-                                Presidential suite with private pool and ocean view. Ultimate luxury.
-                            </div>
-                            <div class="room-price">
-                                20,000.00 LKR <span>/ night</span>
-                            </div>
-                            <button class="btn-book" onclick="openBookingModal(13, '401', 'Suite', 20000)">Book Now</button>
-                        </div>
+                    <% if (rooms.isEmpty()) { %>
+                    <div class="empty-state" style="grid-column: 1/-1;">
+                        <h3>No Rooms Found</h3>
+                        <p>There are currently no rooms. Please check back later.</p>
                     </div>
+                    <% } %>
                 </div>
             </div>
 
@@ -881,7 +939,6 @@ nav {
                     </table>
                 </div>
             </div>
-
 
         </div>
 
@@ -1006,13 +1063,32 @@ nav {
                 }
             }
 
-            // Booking Modal
+            // Filter rooms by type - hides/shows cards, unavailable cards stay visible but still disabled
+            function filterRooms() {
+                const type = document.getElementById('filterType').value;
+                const cards = document.querySelectorAll('.room-card');
+                cards.forEach(function(card) {
+                    if (!type || card.dataset.type === type) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            }
+
+            // Booking Modal - only reachable from available rooms (Book Now button)
             function openBookingModal(roomId, roomNumber, roomType, price) {
                 document.getElementById('roomId').value = roomId;
                 document.getElementById('roomPrice').value = price;
                 document.getElementById('modalRoomNumber').textContent = roomNumber;
                 document.getElementById('summaryRoomType').textContent = roomType;
                 document.getElementById('summaryPricePerNight').textContent = price.toLocaleString() + '.00 LKR';
+                document.getElementById('summaryNights').textContent = '0';
+                document.getElementById('summaryTotal').textContent = '0.00 LKR';
+
+                // Reset date fields
+                document.getElementById('checkIn').value = '';
+                document.getElementById('checkOut').value = '';
 
                 // Set minimum date to today
                 const today = new Date().toISOString().split('T')[0];
@@ -1034,12 +1110,21 @@ nav {
 
                     document.getElementById('summaryNights').textContent = nights;
                     document.getElementById('summaryTotal').textContent = total.toLocaleString() + '.00 LKR';
+
+                    // Keep checkout min in sync with checkin
+                    document.getElementById('checkOut').min = document.getElementById('checkIn').value;
                 }
             }
 
             // Submit booking
             function submitBooking(event) {
                 event.preventDefault();
+                const checkIn  = new Date(document.getElementById('checkIn').value);
+                const checkOut = new Date(document.getElementById('checkOut').value);
+                if (!checkIn || !checkOut || checkOut <= checkIn) {
+                    alert('Please select valid check-in and check-out dates.');
+                    return;
+                }
                 alert('Booking submitted successfully!');
                 closeModal('bookingModal');
                 // Implement booking logic here
@@ -1065,6 +1150,12 @@ nav {
                     window.location.href = 'LogoutServlet';
                 }
             }
+
+            // Auto-hide flash alert after 4 seconds
+            setTimeout(function() {
+                var alertEl = document.querySelector('.alert');
+                if (alertEl) alertEl.style.display = 'none';
+            }, 4000);
         </script>
     </body>
 </html>
