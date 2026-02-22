@@ -5,10 +5,10 @@
     if (userSession != null && userSession.getAttribute("userId") != null) {
         String role = (String) userSession.getAttribute("role");
         if ("ADMIN".equals(role)) {
-            response.sendRedirect(request.getContextPath() + "/admin-dashboard.jsp");
+            response.sendRedirect(request.getContextPath() + "/PAGES/admin-dashboard.jsp");
             return;
         } else {
-            response.sendRedirect(request.getContextPath() + "/customer-dashboard.jsp");
+            response.sendRedirect(request.getContextPath() + "/PAGES/customer-dashboard.jsp");
             return;
         }
     }
