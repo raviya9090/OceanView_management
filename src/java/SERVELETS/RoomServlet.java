@@ -83,7 +83,7 @@ public class RoomServlet extends HttpServlet {
                 break;
 
             default:
-                response.sendRedirect(request.getContextPath() + "/admin-dashboard.jsp");
+                response.sendRedirect(request.getContextPath() + "/PAGES/admin-dashboard.jsp");
                 break;
         }
     }
