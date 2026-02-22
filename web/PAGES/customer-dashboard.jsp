@@ -32,6 +32,9 @@
     String msgText = (String) session.getAttribute("msgText");
     session.removeAttribute("msgType");
     session.removeAttribute("msgText");
+
+    // ── Context path for JS (avoids repeated scriptlet calls inside script) ───
+    String ctx = request.getContextPath();
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -137,9 +140,9 @@
             <nav>
                 <div class="logo">Ocean View Resort</div>
                 <div class="user-info">
-                    <a href="./home.jsp" class="btn btn-login">Home</a>
-                    <a href="./contact-us.jsp" class="btn btn-login">Contact Us</a>
-                    <a href="./customer-dashboard.jsp" class="btn btn-login">Bookings</a>
+                    <a href="<%= ctx %>/PAGES/home.jsp" class="btn btn-login">Home</a>
+                    <a href="<%= ctx %>/PAGES/contact-us.jsp" class="btn btn-login">Contact Us</a>
+                    <a href="<%= ctx %>/ReservationServlet" class="btn btn-login">Bookings</a>
                     <span class="username"><%= username %></span>
                     <button class="btn-logout" onclick="logout()">Logout</button>
                 </div>
@@ -191,9 +194,9 @@
                             boolean isAvailable = "Available".equalsIgnoreCase(room.getAvailability());
                             String cardClass = isAvailable ? "room-card" : "room-card unavailable";
                             String icon = "🏨";
-                            if ("Deluxe".equals(room.getRoomType()))   icon = "🌊";
+                            if ("Deluxe".equals(room.getRoomType()))      icon = "🌊";
                             else if ("Luxury".equals(room.getRoomType())) icon = "⭐";
-                            else if ("Suite".equals(room.getRoomType())) icon = "👑";
+                            else if ("Suite".equals(room.getRoomType()))  icon = "👑";
                             String statusBadgeClass = "room-status-occupied";
                             if ("Maintenance".equalsIgnoreCase(room.getAvailability()))
                                 statusBadgeClass = "room-status-maintenance";
@@ -259,7 +262,7 @@
                                 if (myReservations != null && !myReservations.isEmpty()) {
                                     for (Reservation res : myReservations) {
                                         String badgeClass = "status-pending";
-                                        if ("Paid".equalsIgnoreCase(res.getPaymentStatus()))        badgeClass = "status-paid";
+                                        if ("Paid".equalsIgnoreCase(res.getPaymentStatus()))           badgeClass = "status-paid";
                                         else if ("Cancelled".equalsIgnoreCase(res.getPaymentStatus())) badgeClass = "status-cancelled";
                             %>
                             <tr>
@@ -302,18 +305,18 @@
                 </div>
             </div>
 
-        </div>
+        </div><!-- /container -->
 
-        <!-- Booking Modal — posts to ReservationServlet -->
+        <!-- Booking Modal -->
         <div id="bookingModal" class="modal">
             <div class="modal-content">
                 <span class="close" onclick="closeModal('bookingModal')">&times;</span>
                 <div class="modal-header">
                     <h2>Book Room <span id="modalRoomNumber"></span></h2>
                 </div>
-                <form action="<%= request.getContextPath() %>/ReservationServlet" method="POST">
+                <form action="<%= ctx %>/ReservationServlet" method="POST">
                     <input type="hidden" name="action" value="book">
-                    <input type="hidden" name="roomId"       id="roomId">
+                    <input type="hidden" name="roomId"        id="roomId">
                     <input type="hidden" name="pricePerNight" id="roomPrice">
 
                     <div class="form-row">
@@ -329,22 +332,10 @@
 
                     <div class="booking-summary">
                         <h3>Booking Summary</h3>
-                        <div class="summary-row">
-                            <span>Room Type:</span>
-                            <span id="summaryRoomType"></span>
-                        </div>
-                        <div class="summary-row">
-                            <span>Price per Night:</span>
-                            <span id="summaryPricePerNight"></span>
-                        </div>
-                        <div class="summary-row">
-                            <span>Number of Nights:</span>
-                            <span id="summaryNights">0</span>
-                        </div>
-                        <div class="summary-row total">
-                            <span>Total Amount:</span>
-                            <span id="summaryTotal">0.00 LKR</span>
-                        </div>
+                        <div class="summary-row"><span>Room Type:</span><span id="summaryRoomType"></span></div>
+                        <div class="summary-row"><span>Price per Night:</span><span id="summaryPricePerNight"></span></div>
+                        <div class="summary-row"><span>Number of Nights:</span><span id="summaryNights">0</span></div>
+                        <div class="summary-row total"><span>Total Amount:</span><span id="summaryTotal">0.00 LKR</span></div>
                     </div>
 
                     <button type="submit" class="btn-submit" onclick="return validateBooking()">Confirm Booking</button>
@@ -356,9 +347,7 @@
         <div id="billModal" class="modal">
             <div class="modal-content">
                 <span class="close" onclick="closeModal('billModal')">&times;</span>
-                <div class="modal-header">
-                    <h2>Reservation Bill</h2>
-                </div>
+                <div class="modal-header"><h2>Reservation Bill</h2></div>
                 <div class="booking-summary">
                     <h3>Bill Details</h3>
                     <div class="summary-row"><span>Reservation ID:</span><span id="billResId"></span></div>
@@ -374,13 +363,15 @@
         </div>
 
         <!-- Hidden cancel form -->
-        <form id="cancelForm" action="<%= request.getContextPath() %>/ReservationServlet" method="POST" style="display:none;">
+        <form id="cancelForm" action="<%= ctx %>/ReservationServlet" method="POST" style="display:none;">
             <input type="hidden" name="action" value="cancel">
             <input type="hidden" name="reservationId" id="cancelResId">
         </form>
 
         <script>
-            // Tab functionality
+            // ── Context path from server (fixes all relative URL issues) ──────
+            const CTX = '<%= ctx %>';
+
             function openTab(tabName, event) {
                 document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
                 document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -389,7 +380,7 @@
             }
 
             function openModal(modalId)  { document.getElementById(modalId).style.display = 'block'; }
-            function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
+            function closeModal(modalId) { document.getElementById(modalId).style.display = 'none';  }
 
             window.onclick = function(event) {
                 if (event.target.classList.contains('modal')) event.target.style.display = 'none';
@@ -405,9 +396,9 @@
             function openBookingModal(roomId, roomNumber, roomType, price) {
                 document.getElementById('roomId').value    = roomId;
                 document.getElementById('roomPrice').value = price;
-                document.getElementById('modalRoomNumber').textContent   = roomNumber;
-                document.getElementById('summaryRoomType').textContent   = roomType;
-                document.getElementById('summaryPricePerNight').textContent = Number(price).toLocaleString() + '.00 LKR';
+                document.getElementById('modalRoomNumber').textContent       = roomNumber;
+                document.getElementById('summaryRoomType').textContent       = roomType;
+                document.getElementById('summaryPricePerNight').textContent  = Number(price).toLocaleString() + '.00 LKR';
                 document.getElementById('summaryNights').textContent = '0';
                 document.getElementById('summaryTotal').textContent  = '0.00 LKR';
                 document.getElementById('checkIn').value  = '';
@@ -434,7 +425,9 @@
             function validateBooking() {
                 const checkIn  = new Date(document.getElementById('checkIn').value);
                 const checkOut = new Date(document.getElementById('checkOut').value);
-                if (!document.getElementById('checkIn').value || !document.getElementById('checkOut').value || checkOut <= checkIn) {
+                if (!document.getElementById('checkIn').value ||
+                    !document.getElementById('checkOut').value ||
+                    checkOut <= checkIn) {
                     alert('Please select valid check-in and check-out dates.');
                     return false;
                 }
@@ -442,15 +435,15 @@
             }
 
             function viewBill(id, room, checkIn, checkOut, nights, total, status) {
-                document.getElementById('billResId').textContent   = '#' + id;
-                document.getElementById('billRoom').textContent    = room;
+                document.getElementById('billResId').textContent    = '#' + id;
+                document.getElementById('billRoom').textContent     = room;
                 document.getElementById('billCheckIn').textContent  = checkIn;
                 document.getElementById('billCheckOut').textContent = checkOut;
-                document.getElementById('billNights').textContent  = nights;
-                document.getElementById('billTotal').textContent   = total + ' LKR';
+                document.getElementById('billNights').textContent   = nights;
+                document.getElementById('billTotal').textContent    = total + ' LKR';
                 const statusEl = document.getElementById('billStatus');
                 let cls = 'status-pending';
-                if (status === 'Paid') cls = 'status-paid';
+                if (status === 'Paid')      cls = 'status-paid';
                 else if (status === 'Cancelled') cls = 'status-cancelled';
                 statusEl.innerHTML = '<span class="status-badge ' + cls + '">' + status + '</span>';
                 openModal('billModal');
@@ -463,16 +456,12 @@
                 }
             }
 
-            function logout() {
-                if (confirm('Are you sure you want to logout?')) {
-                    window.location.href = 'LogoutServlet';
-                }
-            }
-
-            // Auto-switch to My Reservations tab if booking was just made
-            <% if ("success".equals(msgType) || "error".equals(msgType)) { %>
-            // keep on available rooms tab after booking attempt; flash message shows result
-            <% } %>
+            // ── FIX: use CTX so logout always resolves correctly ──────────────
+           function logout() {
+    if (confirm('Are you sure you want to logout?')) {
+        window.location.href = CTX + '/LogoutServlet';
+    }
+}
 
             setTimeout(function() {
                 var alertEl = document.querySelector('.alert');
