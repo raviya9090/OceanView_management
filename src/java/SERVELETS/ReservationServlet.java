@@ -7,235 +7,226 @@ import SERVICES.RoomService;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-
+import jakarta.servlet.http.*;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
 
-/**
- * ReservationServlet - Handles all Reservation operations
- *
- * URL Patterns:
- *  GET  /ReservationServlet?action=getAll        → All reservations (Admin)
- *  GET  /ReservationServlet?action=getMyBookings → Logged-in user's reservations (Guest)
- *  POST /ReservationServlet?action=add           → Guest books a room
- *  POST /ReservationServlet?action=edit          → Admin edits reservation
- *  POST /ReservationServlet?action=delete        → Admin deletes reservation
- *  POST /ReservationServlet?action=cancel        → Guest cancels own pending reservation
- *
- * @author Ashen Samarasekera
- */
 @WebServlet(name = "ReservationServlet", urlPatterns = {"/ReservationServlet"})
 public class ReservationServlet extends HttpServlet {
 
-    private ReservationService reservationService;
-    private RoomService roomService;
+    private final ReservationService reservationService = new ReservationService();
+    private final RoomService roomService = new RoomService();
 
-    @Override
-    public void init() throws ServletException {
-        super.init();
-        reservationService = new ReservationService();
-        roomService        = new RoomService();
-    }
-
-    // ─────────────────────────────────────────────
-    // GET
-    // ─────────────────────────────────────────────
+    // ── GET: load dashboards with reservation data ────────────────────────────
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            response.sendRedirect(request.getContextPath() + "/PAGES/login.jsp");
+            return;
+        }
+
+        String role = (String) session.getAttribute("role");
         String action = request.getParameter("action");
-        if (action == null) action = "";
 
-        switch (action) {
-
-            // Admin: all reservations → admin-dashboard.jsp on reservations tab
-            case "getAll":
-                if (!isAdmin(request, response)) return;
-                List<Reservation> all = reservationService.getAllReservations();
-                List<Room> allRooms   = roomService.getAllRooms();
-                request.setAttribute("reservations", all);
-                request.setAttribute("rooms", allRooms);
-                request.setAttribute("activeTab", "reservations");
-                request.getRequestDispatcher("/admin-dashboard.jsp").forward(request, response);
-                break;
-
-            // Guest: own reservations → customer-dashboard.jsp, opens My Reservations tab
-            case "getMyBookings":
-                if (!isLoggedIn(request, response)) return;
-                int userId = (Integer) request.getSession().getAttribute("userId");
-                List<Reservation> mine = reservationService.getReservationsByUserId(userId);
-                List<Room> guestRooms  = roomService.getAllRooms();
-                request.setAttribute("reservations", mine);
-                request.setAttribute("rooms", guestRooms);
-                request.setAttribute("activeTab", "my-reservations");
-                request.getRequestDispatcher("/customer-dashboard.jsp").forward(request, response);
-                break;
-
-            default:
-                response.sendRedirect(request.getContextPath() + "/customer-dashboard.jsp");
-                break;
+        if ("ADMIN".equalsIgnoreCase(role)) {
+            handleAdminGet(request, response, action);
+        } else {
+            handleGuestGet(request, response, action);
         }
     }
 
-    // ─────────────────────────────────────────────
-    // POST
-    // ─────────────────────────────────────────────
+    // ── POST: create / update / delete / cancel ───────────────────────────────
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            response.sendRedirect(request.getContextPath() + "/PAGES/login.jsp");
+            return;
+        }
+
         String action = request.getParameter("action");
-        if (action == null) action = "";
+        String role   = (String) session.getAttribute("role");
 
-        switch (action) {
-
-            case "add":
-                if (!isLoggedIn(request, response)) return;
-                handleAdd(request, response);
+        switch (action == null ? "" : action) {
+            case "book":
+                handleBook(request, response, session);
                 break;
-
-            case "edit":
-                if (!isAdmin(request, response)) return;
-                handleEdit(request, response);
-                break;
-
-            case "delete":
-                if (!isAdmin(request, response)) return;
-                handleDelete(request, response);
-                break;
-
             case "cancel":
-                if (!isLoggedIn(request, response)) return;
-                handleCancel(request, response);
+                handleCancel(request, response, session, role);
                 break;
-
+            case "add":
+                handleAdminAdd(request, response, session);
+                break;
+            case "edit":
+                handleAdminEdit(request, response, session);
+                break;
+            case "delete":
+                handleAdminDelete(request, response, session);
+                break;
             default:
-                response.sendRedirect(request.getContextPath() + "/customer-dashboard.jsp");
-                break;
+                response.sendRedirect(request.getContextPath() + "/PAGES/login.jsp");
         }
     }
 
-    // ─────────────────────────────────────────────
-    // HANDLERS
-    // ─────────────────────────────────────────────
-
-    /** Guest books a room */
-    private void handleAdd(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
+    // ── Guest: load rooms + their reservations ────────────────────────────────
+    private void handleGuestGet(HttpServletRequest request, HttpServletResponse response,
+                                String action) throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        String userIdStr = String.valueOf(session.getAttribute("userId"));
-        String roomId    = request.getParameter("roomId");
-        String checkIn   = request.getParameter("checkIn");
-        String checkOut  = request.getParameter("checkOut");
-
-        if (isNullOrEmpty(roomId) || isNullOrEmpty(checkIn) || isNullOrEmpty(checkOut)) {
-            setMsg(request, "error", "All booking fields are required.");
-            response.sendRedirect(request.getContextPath() + "/customer-dashboard.jsp");
+        Integer userId = (Integer) session.getAttribute("userId");
+        if (userId == null) {
+            response.sendRedirect(request.getContextPath() + "/PAGES/login.jsp");
             return;
         }
-
-        boolean ok = reservationService.addReservation(userIdStr, roomId, checkIn, checkOut);
-        setMsg(request, ok ? "success" : "error",
-               ok ? "Room booked successfully! Your reservation is pending confirmation."
-                  : "Booking failed. The room may no longer be available. Please try another room.");
-        response.sendRedirect(request.getContextPath() + "/customer-dashboard.jsp");
+        List<Room> rooms = roomService.getAllRooms();
+        List<Reservation> myReservations = reservationService.getReservationsByUserId(userId);
+        request.setAttribute("rooms", rooms);
+        request.setAttribute("myReservations", myReservations);
+        request.getRequestDispatcher("/PAGES/customer-dashboard.jsp").forward(request, response);
     }
 
-    /** Admin edits a reservation */
-    private void handleEdit(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-        String reservationId = request.getParameter("reservationId");
-        String userId        = request.getParameter("userId");
-        String roomId        = request.getParameter("roomId");
-        String checkIn       = request.getParameter("checkIn");
-        String checkOut      = request.getParameter("checkOut");
-        String paymentStatus = request.getParameter("paymentStatus");
+    // ── Admin: load all reservations + rooms ──────────────────────────────────
+    private void handleAdminGet(HttpServletRequest request, HttpServletResponse response,
+                                String action) throws ServletException, IOException {
+        List<Reservation> reservations = reservationService.getAllReservations();
+        List<Room> rooms = roomService.getAllRooms();
+        int totalReservations = reservationService.getTotalReservationCount();
+        int totalGuests = reservationService.getTotalGuestCount();
 
-        if (isNullOrEmpty(reservationId) || isNullOrEmpty(userId) || isNullOrEmpty(roomId)
-                || isNullOrEmpty(checkIn) || isNullOrEmpty(checkOut)) {
-            setMsg(request, "error", "All fields are required to update a reservation.");
-            response.sendRedirect(request.getContextPath() + "/ReservationServlet?action=getAll");
+        request.setAttribute("reservations", reservations);
+        request.setAttribute("rooms", rooms);
+        request.setAttribute("totalReservations", totalReservations);
+        request.setAttribute("totalGuests", totalGuests);
+        request.setAttribute("activeTab", "reservations");
+        request.getRequestDispatcher("/PAGES/admin-dashboard.jsp").forward(request, response);
+    }
+
+    // ── Guest: book a room ────────────────────────────────────────────────────
+    private void handleBook(HttpServletRequest request, HttpServletResponse response,
+                            HttpSession session) throws IOException {
+        Integer userId = (Integer) session.getAttribute("userId");
+        if (userId == null) {
+            response.sendRedirect(request.getContextPath() + "/PAGES/login.jsp");
             return;
         }
+        try {
+            int roomId            = Integer.parseInt(request.getParameter("roomId"));
+            String checkIn        = request.getParameter("checkIn");
+            String checkOut       = request.getParameter("checkOut");
+            BigDecimal price      = new BigDecimal(request.getParameter("pricePerNight"));
 
-        boolean ok = reservationService.updateReservation(
-                reservationId, userId, roomId, checkIn, checkOut, paymentStatus);
-        setMsg(request, ok ? "success" : "error",
-               ok ? "Reservation updated successfully!" : "Failed to update reservation.");
-        response.sendRedirect(request.getContextPath() + "/ReservationServlet?action=getAll");
-    }
-
-    /** Admin deletes a reservation */
-    private void handleDelete(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-        String reservationId = request.getParameter("reservationId");
-        if (isNullOrEmpty(reservationId)) {
-            setMsg(request, "error", "Reservation ID is required.");
-            response.sendRedirect(request.getContextPath() + "/ReservationServlet?action=getAll");
-            return;
+            boolean success = reservationService.createReservation(userId, roomId, checkIn, checkOut, price);
+            if (success) {
+                session.setAttribute("msgType", "success");
+                session.setAttribute("msgText", "Booking confirmed! Your reservation has been created.");
+            } else {
+                session.setAttribute("msgType", "error");
+                session.setAttribute("msgText", "Booking failed. Please check your dates and try again.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            session.setAttribute("msgType", "error");
+            session.setAttribute("msgText", "Booking failed due to an error: " + e.getMessage());
         }
-        boolean ok = reservationService.deleteReservation(reservationId);
-        setMsg(request, ok ? "success" : "error",
-               ok ? "Reservation deleted successfully!" : "Failed to delete reservation.");
-        response.sendRedirect(request.getContextPath() + "/ReservationServlet?action=getAll");
+        response.sendRedirect(request.getContextPath() + "/ReservationServlet");
     }
 
-    /** Guest cancels own pending reservation */
-    private void handleCancel(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-        HttpSession session  = request.getSession(false);
-        String userIdStr     = String.valueOf(session.getAttribute("userId"));
-        String reservationId = request.getParameter("reservationId");
-
-        if (isNullOrEmpty(reservationId)) {
-            setMsg(request, "error", "Reservation ID is required.");
-            response.sendRedirect(request.getContextPath() + "/customer-dashboard.jsp");
-            return;
+    // ── Cancel (guest cancels own; admin can cancel any) ─────────────────────
+    private void handleCancel(HttpServletRequest request, HttpServletResponse response,
+                              HttpSession session, String role) throws IOException {
+        try {
+            int reservationId = Integer.parseInt(request.getParameter("reservationId"));
+            boolean success   = reservationService.cancelReservation(reservationId);
+            if (success) {
+                session.setAttribute("msgType", "success");
+                session.setAttribute("msgText", "Reservation #" + reservationId + " has been cancelled.");
+            } else {
+                session.setAttribute("msgType", "error");
+                session.setAttribute("msgText", "Cancellation failed.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            session.setAttribute("msgType", "error");
+            session.setAttribute("msgText", "Error during cancellation.");
         }
 
-        boolean ok = reservationService.cancelReservation(reservationId, userIdStr);
-        setMsg(request, ok ? "success" : "error",
-               ok ? "Reservation cancelled successfully. The room is now available again."
-                  : "Cancellation failed. Only pending reservations can be cancelled.");
-        response.sendRedirect(request.getContextPath() + "/customer-dashboard.jsp");
-    }
-
-    // ─────────────────────────────────────────────
-    // UTILITY
-    // ─────────────────────────────────────────────
-
-    private boolean isAdmin(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("role") == null
-                || !session.getAttribute("role").toString().equalsIgnoreCase("ADMIN")) {
-            response.sendRedirect(request.getContextPath() + "/login.jsp");
-            return false;
+        if ("ADMIN".equalsIgnoreCase(role)) {
+            response.sendRedirect(request.getContextPath() + "/ReservationServlet?role=admin");
+        } else {
+            response.sendRedirect(request.getContextPath() + "/ReservationServlet");
         }
-        return true;
     }
 
-    private boolean isLoggedIn(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("userId") == null) {
-            response.sendRedirect(request.getContextPath() + "/login.jsp");
-            return false;
+    // ── Admin: add reservation manually ──────────────────────────────────────
+    private void handleAdminAdd(HttpServletRequest request, HttpServletResponse response,
+                                HttpSession session) throws IOException {
+        try {
+            int userId        = Integer.parseInt(request.getParameter("userId"));
+            int roomId        = Integer.parseInt(request.getParameter("roomId"));
+            String checkIn    = request.getParameter("checkIn");
+            String checkOut   = request.getParameter("checkOut");
+            BigDecimal price  = new BigDecimal(request.getParameter("pricePerNight"));
+            String status     = request.getParameter("paymentStatus");
+
+            boolean success = reservationService.createReservation(userId, roomId, checkIn, checkOut, price);
+            // update status if Paid
+            if (success && "Paid".equals(status)) {
+                List<Reservation> all = reservationService.getAllReservations();
+                if (!all.isEmpty()) {
+                    int newId = all.get(0).getReservationId();
+                    reservationService.updateReservation(newId, roomId, checkIn, checkOut, price, "Paid");
+                }
+            }
+            session.setAttribute("msgType", success ? "success" : "error");
+            session.setAttribute("msgText", success ? "Reservation added successfully." : "Failed to add reservation.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            session.setAttribute("msgType", "error");
+            session.setAttribute("msgText", "Error: " + e.getMessage());
         }
-        return true;
+        response.sendRedirect(request.getContextPath() + "/ReservationServlet");
     }
 
-    private void setMsg(HttpServletRequest request, String type, String text) {
-        request.getSession().setAttribute("msgType", type);
-        request.getSession().setAttribute("msgText", text);
+    // ── Admin: edit reservation ───────────────────────────────────────────────
+    private void handleAdminEdit(HttpServletRequest request, HttpServletResponse response,
+                                 HttpSession session) throws IOException {
+        try {
+            int reservationId = Integer.parseInt(request.getParameter("reservationId"));
+            int roomId        = Integer.parseInt(request.getParameter("roomId"));
+            String checkIn    = request.getParameter("checkIn");
+            String checkOut   = request.getParameter("checkOut");
+            BigDecimal price  = new BigDecimal(request.getParameter("pricePerNight"));
+            String status     = request.getParameter("paymentStatus");
+
+            boolean success = reservationService.updateReservation(reservationId, roomId, checkIn, checkOut, price, status);
+            session.setAttribute("msgType", success ? "success" : "error");
+            session.setAttribute("msgText", success ? "Reservation updated successfully." : "Update failed.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            session.setAttribute("msgType", "error");
+            session.setAttribute("msgText", "Error: " + e.getMessage());
+        }
+        response.sendRedirect(request.getContextPath() + "/ReservationServlet");
     }
 
-    private boolean isNullOrEmpty(String val) {
-        return val == null || val.trim().isEmpty();
+    // ── Admin: delete reservation ─────────────────────────────────────────────
+    private void handleAdminDelete(HttpServletRequest request, HttpServletResponse response,
+                                   HttpSession session) throws IOException {
+        try {
+            int reservationId = Integer.parseInt(request.getParameter("reservationId"));
+            boolean success   = reservationService.deleteReservation(reservationId);
+            session.setAttribute("msgType", success ? "success" : "error");
+            session.setAttribute("msgText", success ? "Reservation deleted." : "Delete failed.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            session.setAttribute("msgType", "error");
+            session.setAttribute("msgText", "Error: " + e.getMessage());
+        }
+        response.sendRedirect(request.getContextPath() + "/ReservationServlet");
     }
 }

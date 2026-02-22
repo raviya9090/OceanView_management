@@ -21,7 +21,7 @@ public class RegisterServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         // Redirect GET requests to register page
-        response.sendRedirect(request.getContextPath() + "/register.jsp");
+        response.sendRedirect(request.getContextPath() + "/PAGES/register.jsp");
     }
     
     @Override
@@ -45,35 +45,35 @@ public class RegisterServlet extends HttpServlet {
             nic.trim().isEmpty()) {
             
             System.err.println("Registration failed: Empty fields");
-            response.sendRedirect(request.getContextPath() + "/register.jsp?error=empty");
+            response.sendRedirect(request.getContextPath() + "/PAGES/register.jsp?error=empty");
             return;
         }
         
         // Validate password match
         if (!password.equals(confirmPassword)) {
             System.err.println("Registration failed: Passwords do not match");
-            response.sendRedirect(request.getContextPath() + "/register.jsp?error=password");
+            response.sendRedirect(request.getContextPath() + "/PAGES/register.jsp?error=password");
             return;
         }
         
         // Validate password length
         if (password.length() < 6) {
             System.err.println("Registration failed: Password too short");
-            response.sendRedirect(request.getContextPath() + "/register.jsp?error=length");
+            response.sendRedirect(request.getContextPath() + "/PAGES/register.jsp?error=length");
             return;
         }
         
         // Validate contact number (must be 10 digits)
         if (!contactNumber.matches("\\d{10}")) {
             System.err.println("Registration failed: Invalid contact number");
-            response.sendRedirect(request.getContextPath() + "/register.jsp?error=contact");
+            response.sendRedirect(request.getContextPath() + "/PAGES/register.jsp?error=contact");
             return;
         }
         
         // Validate NIC (must be 12 digits)
         if (!nic.matches("\\d{12}")) {
             System.err.println("Registration failed: Invalid NIC");
-            response.sendRedirect(request.getContextPath() + "/register.jsp?error=nic");
+            response.sendRedirect(request.getContextPath() + "/PAGES/register.jsp?error=nic");
             return;
         }
         
@@ -92,7 +92,7 @@ public class RegisterServlet extends HttpServlet {
         } else {
             // Registration failed - username already exists
             System.err.println("Registration failed: Username already exists: " + username);
-            response.sendRedirect(request.getContextPath() + "/register.jsp?error=username");
+            response.sendRedirect(request.getContextPath() + "/PAGES/register.jsp?error=username");
         }
     }
     

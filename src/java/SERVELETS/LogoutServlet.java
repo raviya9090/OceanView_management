@@ -22,7 +22,7 @@ public class LogoutServlet extends HttpServlet {
         }
         
         // Redirect to login page
-        response.sendRedirect("login.jsp");
+        response.sendRedirect("/PAGES/login.jsp");
     }
     
     @Override

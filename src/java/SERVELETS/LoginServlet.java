@@ -22,7 +22,7 @@ public class LoginServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         // Redirect GET requests to login page
-        response.sendRedirect(request.getContextPath() + "/login.jsp");
+        response.sendRedirect(request.getContextPath() + "/PAGES/login.jsp");
     }
     
     @Override
@@ -39,7 +39,7 @@ public class LoginServlet extends HttpServlet {
         if (username == null || password == null || 
             username.trim().isEmpty() || password.trim().isEmpty()) {
             System.err.println("Login failed: Empty credentials");
-            response.sendRedirect(request.getContextPath() + "/login.jsp?error=empty");
+            response.sendRedirect(request.getContextPath() + "/PAGES/login.jsp?error=empty");
             return;
         }
         
@@ -67,12 +67,12 @@ public class LoginServlet extends HttpServlet {
             } else {
                 // Unknown role - redirect to login
                 System.err.println("Unknown role: " + user.getRole());
-                response.sendRedirect(request.getContextPath() + "/login.jsp?error=invalid");
+                response.sendRedirect(request.getContextPath() + "/PAGES/login.jsp?error=invalid");
             }
         } else {
             // Login failed
             System.err.println("Login failed: Invalid credentials for username: " + username);
-            response.sendRedirect(request.getContextPath() + "/login.jsp?error=invalid");
+            response.sendRedirect(request.getContextPath() + "/PAGES/login.jsp?error=invalid");
         }
     }
     
