@@ -1,0 +1,56 @@
+PROJECT VERSION HISTORY (Based on Commit Timeline)
+==================================================
+
+Version: 1.0.0
+Release Type: Major
+Date Range: Jan 25 – Jan 30, 2026
+Included Features:
+- Implemented models
+- Finalized admin booking status implementation
+- Created main login and register system
+- Created authentication servlets
+- Created admin and customer pages
+- Created room servlet and reservation servlets
+
+
+Version: 1.1.0
+Release Type: Minor
+Date Range: Jan 31 – Feb 1, 2026
+Included Features:
+- Fixed servlet issues in login and register
+- UI and integration improvements
+- Fixed user model issues
+- Fixed database connection issues
+
+
+Version: 1.2.0
+Release Type: Minor
+Date Range: Feb 4 – Feb 7, 2026
+Included Features:
+- Fixed DAO and service files
+- Authentication UI validation fixes
+- Database connection updates
+- DAO and model improvements
+
+
+Version: 1.2.1
+Release Type: Patch
+Date Range: Feb 13 – Feb 22, 2026
+Included Features:
+- Debug fixes in login servlet
+- Contact page updates
+- Index page minor changes
+- Reservation DAO and service updates
+- Dashboard integration updates
+- Logout functionality implementation
+- Servlet path fixes
+- Build file updates and debugging improvements
+
+
+Version: 2.0.0
+Release Type: Major
+Date Range: Mar 2, 2026
+Included Features:
+- Room DAO and servlet major changes
+- Backend restructuring improvements
+- System refinement and stabilization
