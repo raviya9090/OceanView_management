@@ -6,12 +6,7 @@ import MODELS.User;
 public class AuthService {
     private final UserDAO userDAO = new UserDAO();
     
-    /**
-     * Login user with username and password
-     * @param username Username
-     * @param password Password (plain text)
-     * @return User object if login successful, null otherwise
-     */
+  
     public User login(String username, String password) {
         // Validate input
         if (username == null || password == null || username.trim().isEmpty() || password.trim().isEmpty()) {
@@ -32,15 +27,7 @@ public class AuthService {
         return null;
     }
     
-    /**
-     * Register new guest user
-     * ADMIN CANNOT REGISTER - Only GUEST role allowed
-     * @param username Username
-     * @param password Password (plain text)
-     * @param contactNumber Contact number (10 digits)
-     * @param nic NIC number (12 digits)
-     * @return true if registration successful, false otherwise
-     */
+   
     public boolean register(String username, String password, String contactNumber, String nic) {
         // Validate input
         if (!validateRegistrationInput(username, password, contactNumber, nic)) {

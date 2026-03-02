@@ -9,7 +9,6 @@ public class DBConnection {
     private static final String USERNAME = "root";
     private static final String PASSWORD = "Ashen@1234";
     
-    // Static block to load MySQL JDBC Driver
     static {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -20,11 +19,7 @@ public class DBConnection {
         }
     }
     
-    /**
-     * Get database connection
-     * @return Connection object
-     * @throws SQLException if connection fails
-     */
+  
     public static Connection getConnection() throws SQLException {
         try {
             Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
@@ -52,11 +47,7 @@ public class DBConnection {
             }
         }
     }
-    
-    /**
-     * Test database connection
-     * @return true if connection successful, false otherwise
-     */
+  
     public static boolean testConnection() {
         try (Connection conn = getConnection()) {
             return conn != null && !conn.isClosed();

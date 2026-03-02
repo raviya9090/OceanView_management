@@ -6,10 +6,7 @@ import MODELS.Room;
 import java.math.BigDecimal;
 import java.util.List;
 
-/**
- * RoomService - Business logic layer for Room operations
- * @author Ashen Samarasekera
- */
+
 public class RoomService {
 
     private final RoomDAO roomDAO;
@@ -18,14 +15,7 @@ public class RoomService {
         this.roomDAO = new RoomDAO();
     }
 
-    // ─────────────────────────────────────────────
-    // CREATE
-    // ─────────────────────────────────────────────
-
-    /**
-     * Add a new room after validating inputs
-     * @return true if added successfully, false otherwise
-     */
+   
     public boolean addRoom(String roomNumber, String roomType, String priceStr,
                            String availability, String description) {
 

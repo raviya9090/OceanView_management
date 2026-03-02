@@ -14,19 +14,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 
-/**
- * RoomServlet - Handles all Room CRUD operations for Admin and Guest
- *
- * URL Patterns:
- *  GET  /RoomServlet?action=getAll           - All rooms (Admin)
- *  GET  /RoomServlet?action=getAvailable     - Available rooms (Guest)
- *  GET  /RoomServlet?action=getById&id=1     - Single room by ID (JSON, no external library)
- *  POST /RoomServlet?action=add              - Add new room (Admin)
- *  POST /RoomServlet?action=edit             - Edit room (Admin)
- *  POST /RoomServlet?action=delete           - Delete room (Admin)
- *
- * @author Ashen Samarasekera
- */
+
 @WebServlet(name = "RoomServlet", urlPatterns = {"/RoomServlet"})
 public class RoomServlet extends HttpServlet {
 

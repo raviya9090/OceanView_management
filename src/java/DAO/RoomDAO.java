@@ -8,21 +8,14 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * RoomDAO - Data Access Object for Room CRUD operations
- * @author Ashen Samarasekera
- */
+
 public class RoomDAO {
 
     // ─────────────────────────────────────────────
     // CREATE
     // ─────────────────────────────────────────────
 
-    /**
-     * Add a new room to the database
-     * @param room Room object to insert
-     * @return true if inserted successfully
-     */
+ 
     public boolean addRoom(Room room) {
         String sql = "INSERT INTO rooms (room_number, room_type, price_per_night, availability, description) VALUES (?, ?, ?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
